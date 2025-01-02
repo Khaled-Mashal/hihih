@@ -1508,60 +1508,47 @@ class _StoreScreenState extends State<StoreScreen> {
                       color:
                       Theme.of(context).colorScheme.background,
                     ),
-                    child: SizedBox(
-                      // Use SizedBox instead of Expanded
-                      height: MediaQuery.of(context)
-                          .size
-                          .height, // Adjust height as needed
+                    child: Container(
+                      height: MediaQuery.of(context).size.height,
                       child: PageView.builder(
                         controller: _pageController,
-                        itemCount:
-                        storeController.categoryList!.length,
+                        itemCount: storeController.categoryList!.length,
                         onPageChanged: (index) {
                           storeController.setCategoryIndex(index);
                         },
                         itemBuilder: (context, index) {
-                          return PaginatedListView(
-                            scrollController: scrollController,
-                            onPaginate: (int? offset) =>
-                                storeController.getStoreItemList(
-                                  widget.store!.id,
-                                  offset!,
-                                  storeController.type,
-                                  false,
-                                ),
-                            totalSize:
-                            storeController.storeItemModel !=
-                                null
-                                ? storeController
-                                .storeItemModel!.totalSize
-                                : null,
-                            offset:
-                            storeController.storeItemModel !=
-                                null
-                                ? storeController
-                                .storeItemModel!.offset
-                                : null,
-                            itemView: ItemsViewV2(
-                              isStore: false,
-                              stores: null,
-                              items: (storeController.categoryList!
-                                  .isNotEmpty &&
-                                  storeController
-                                      .storeItemModel !=
-                                      null)
-                                  ? storeController
-                                  .storeItemModel!.items
+                          return SingleChildScrollView(
+                            child: PaginatedListView(
+                              scrollController: scrollController,
+                              onPaginate: (int? offset) =>
+                                  storeController.getStoreItemList(
+                                    widget.store!.id,
+                                    offset!,
+                                    storeController.type,
+                                    false,
+                                  ),
+                              totalSize: storeController.storeItemModel != null
+                                  ? storeController.storeItemModel!.totalSize
                                   : null,
-                              inStorePage: true,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal:
-                                Dimensions.paddingSizeSmall,
-                                vertical:
-                                Dimensions.paddingSizeSmall,
+                              offset: storeController.storeItemModel != null
+                                  ? storeController.storeItemModel!.offset
+                                  : null,
+                              itemView: ItemsViewV2(
+                                isStore: false,
+                                stores: null,
+                                items: (storeController.categoryList!.isNotEmpty &&
+                                    storeController.storeItemModel != null)
+                                    ? storeController.storeItemModel!.items
+                                    : null,
+                                inStorePage: true,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: Dimensions.paddingSizeSmall,
+                                  vertical: Dimensions.paddingSizeSmall,
                               ),
+                          ),
                             ),
                           );
+
                         },
                       ),
                     ),
