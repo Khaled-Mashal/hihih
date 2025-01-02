@@ -25,7 +25,6 @@ import 'package:sixam_mart/view/base/custom_button.dart';
 import 'package:sixam_mart/view/base/custom_image.dart';
 import 'package:sixam_mart/view/base/custom_snackbar.dart';
 import 'package:sixam_mart/view/base/footer_view.dart';
-import 'package:sixam_mart/view/base/item_view.dart';
 import 'package:sixam_mart/view/base/item_viewV2.dart';
 import 'package:sixam_mart/view/base/item_widget.dart';
 import 'package:sixam_mart/view/base/menu_drawer.dart';
@@ -40,22 +39,15 @@ import 'package:sixam_mart/view/screens/store/widget/customizable_space_bar.dart
 import 'package:sixam_mart/view/screens/store/widget/store_description_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import 'widget/bottom_cart_widget.dart';
-import 'package:universal_html/html.dart' as html;
 
 class StoreScreen extends StatefulWidget {
   final Store? store;
   final bool fromModule;
   final String slug;
-  const StoreScreen({
-    Key? key,
-    required this.store,
-    required this.fromModule,
-    this.slug = '',
-  }) : super(key: key);
-
+  const StoreScreen(
+      {Key? key, required this.store, required this.fromModule, this.slug = ''})
+      : super(key: key);
 
   @override
   State<StoreScreen> createState() => _StoreScreenState();
@@ -64,6 +56,7 @@ class StoreScreen extends StatefulWidget {
 class _StoreScreenState extends State<StoreScreen> {
   final ScrollController scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
@@ -122,7 +115,7 @@ class _StoreScreenState extends State<StoreScreen> {
         appBar: ResponsiveHelper.isDesktop(context) ? const WebMenuBar() : null,
         endDrawer: const MenuDrawer(),
         endDrawerEnableOpenDragGesture: false,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Theme.of(context).colorScheme.background,
         body: GetBuilder<StoreController>(builder: (storeController) {
           return GetBuilder<CategoryController>(builder: (categoryController) {
             Store? store;
@@ -263,10 +256,11 @@ class _StoreScreenState extends State<StoreScreen> {
                                             (scrollingRate * 15),
                                         fit: BoxFit.cover,
                                       ),
-                                      storeController
-                                          .isStoreOpenNow(
-                                          store.active!,
-                                          store.schedules)
+                                      // storeController
+                                      //         .isStoreOpenNow(
+                                      //             store.active!,
+                                      //             store.schedules)
+                                      true
                                           ? const SizedBox()
                                           : Positioned(
                                         bottom: 0,
@@ -1002,22 +996,38 @@ class _StoreScreenState extends State<StoreScreen> {
                                               false);
                                         }
                                       },
-                                      totalSize:
-                                      storeController.isSearching
+                                      totalSize: storeController
+                                          .isSearching
                                           ? storeController
-                                          .storeSearchItemModel
-                                          ?.totalSize
-                                          : storeController
-                                          .storeItemModel
-                                          ?.totalSize,
-                                      offset:
-                                      storeController.isSearching
+                                          .storeSearchItemModel !=
+                                          null
                                           ? storeController
-                                          .storeSearchItemModel
-                                          ?.offset
+                                          .storeSearchItemModel!
+                                          .totalSize
+                                          : null
                                           : storeController
-                                          .storeItemModel
-                                          ?.offset,
+                                          .storeItemModel !=
+                                          null
+                                          ? storeController
+                                          .storeItemModel!
+                                          .totalSize
+                                          : null,
+                                      offset: storeController
+                                          .isSearching
+                                          ? storeController
+                                          .storeSearchItemModel !=
+                                          null
+                                          ? storeController
+                                          .storeSearchItemModel!
+                                          .offset
+                                          : null
+                                          : storeController
+                                          .storeItemModel !=
+                                          null
+                                          ? storeController
+                                          .storeItemModel!
+                                          .offset
+                                          : null,
                                       itemView: WebItemsView(
                                         isStore: false,
                                         stores: null,
@@ -1025,8 +1035,12 @@ class _StoreScreenState extends State<StoreScreen> {
                                         items: storeController
                                             .isSearching
                                             ? storeController
-                                            .storeSearchItemModel
-                                            ?.items
+                                            .storeSearchItemModel !=
+                                            null
+                                            ? storeController
+                                            .storeSearchItemModel!
+                                            .items
+                                            : null
                                             : (storeController
                                             .categoryList!
                                             .isNotEmpty &&
@@ -1406,16 +1420,28 @@ class _StoreScreenState extends State<StoreScreen> {
                                     const BouncingScrollPhysics(),
                                     itemBuilder: (context, index) {
                                       return InkWell(
-                                        onTap: () => storeController
-                                            .setCategoryIndex(
-                                            index),
+                                        onTap: () {
+                                          storeController
+                                              .setCategoryIndex(
+                                              index);
+                                          _pageController
+                                              .animateToPage(
+                                            index,
+                                            duration:
+                                            const Duration(
+                                                milliseconds:
+                                                300),
+                                            curve: Curves.easeInOut,
+                                          );
+                                        },
                                         child: Container(
                                           padding: const EdgeInsets
                                               .symmetric(
-                                              horizontal: Dimensions
-                                                  .paddingSizeSmall,
-                                              vertical: Dimensions
-                                                  .paddingSizeExtraSmall),
+                                            horizontal: Dimensions
+                                                .paddingSizeSmall,
+                                            vertical: Dimensions
+                                                .paddingSizeExtraSmall,
+                                          ),
                                           margin: const EdgeInsets
                                               .only(
                                               right: Dimensions
@@ -1435,31 +1461,34 @@ class _StoreScreenState extends State<StoreScreen> {
                                                 .transparent,
                                           ),
                                           child: Column(
-                                              mainAxisAlignment:
-                                              MainAxisAlignment
-                                                  .center,
-                                              children: [
-                                                Text(
-                                                  storeController
-                                                      .categoryList![
-                                                  index]
-                                                      .name!,
-                                                  style: index ==
-                                                      storeController
-                                                          .categoryIndex
-                                                      ? robotoMedium.copyWith(
-                                                      fontSize:
-                                                      Dimensions
-                                                          .fontSizeSmall,
-                                                      color: Theme.of(
-                                                          context)
-                                                          .primaryColor)
-                                                      : robotoRegular
-                                                      .copyWith(
-                                                      fontSize:
-                                                      Dimensions.fontSizeSmall),
-                                                ),
-                                              ]),
+                                            mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .center,
+                                            children: [
+                                              Text(
+                                                storeController
+                                                    .categoryList![
+                                                index]
+                                                    .name!,
+                                                style: index ==
+                                                    storeController
+                                                        .categoryIndex
+                                                    ? robotoMedium
+                                                    .copyWith(
+                                                  fontSize:
+                                                  Dimensions
+                                                      .fontSizeSmall,
+                                                  color: Theme.of(
+                                                      context)
+                                                      .primaryColor,
+                                                )
+                                                    : robotoRegular.copyWith(
+                                                    fontSize:
+                                                    Dimensions
+                                                        .fontSizeSmall),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       );
                                     },
@@ -1473,39 +1502,71 @@ class _StoreScreenState extends State<StoreScreen> {
                 ResponsiveHelper.isDesktop(context)
                     ? const SliverToBoxAdapter(child: SizedBox())
                     : SliverToBoxAdapter(
-                    child: Container(
-                      width: Dimensions.webMaxWidth,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
+                  child: Container(
+                    width: Dimensions.webMaxWidth,
+                    decoration: BoxDecoration(
+                      color:
+                      Theme.of(context).colorScheme.background,
+                    ),
+                    child: SizedBox(
+                      // Use SizedBox instead of Expanded
+                      height: MediaQuery.of(context)
+                          .size
+                          .height, // Adjust height as needed
+                      child: PageView.builder(
+                        controller: _pageController,
+                        itemCount:
+                        storeController.categoryList!.length,
+                        onPageChanged: (index) {
+                          storeController.setCategoryIndex(index);
+                        },
+                        itemBuilder: (context, index) {
+                          return PaginatedListView(
+                            scrollController: scrollController,
+                            onPaginate: (int? offset) =>
+                                storeController.getStoreItemList(
+                                  widget.store!.id,
+                                  offset!,
+                                  storeController.type,
+                                  false,
+                                ),
+                            totalSize:
+                            storeController.storeItemModel !=
+                                null
+                                ? storeController
+                                .storeItemModel!.totalSize
+                                : null,
+                            offset:
+                            storeController.storeItemModel !=
+                                null
+                                ? storeController
+                                .storeItemModel!.offset
+                                : null,
+                            itemView: ItemsViewV2(
+                              isStore: false,
+                              stores: null,
+                              items: (storeController.categoryList!
+                                  .isNotEmpty &&
+                                  storeController
+                                      .storeItemModel !=
+                                      null)
+                                  ? storeController
+                                  .storeItemModel!.items
+                                  : null,
+                              inStorePage: true,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal:
+                                Dimensions.paddingSizeSmall,
+                                vertical:
+                                Dimensions.paddingSizeSmall,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      child: PaginatedListView(
-                        scrollController: scrollController,
-                        onPaginate: (int? offset) =>
-                            storeController.getStoreItemList(
-                                widget.store!.id,
-                                offset!,
-                                storeController.type,
-                                false),
-                        totalSize:
-                        storeController.storeItemModel?.totalSize,
-                        offset: storeController.storeItemModel?.offset,
-                        itemView: ItemsViewV2(
-                          isStore: false,
-                          stores: null,
-                          items: (storeController
-                              .categoryList!.isNotEmpty &&
-                              storeController.storeItemModel !=
-                                  null)
-                              ? storeController.storeItemModel!.items
-                              : null,
-                          inStorePage: true,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: Dimensions.paddingSizeSmall,
-                            vertical: Dimensions.paddingSizeSmall,
-                          ),
-                        ),
-                      ),
-                    )),
+                    ),
+                  ),
+                )
               ],
             )
                 : const Center(child: CircularProgressIndicator());
